@@ -1,0 +1,43 @@
+name: CatBoost Mac
+on:
+  push:
+    branches:
+      - "**"
+    tags-ignore:
+      - "*"
+    paths:
+      - .github/workflows/catboost-mac.yml
+
+jobs:
+  build:
+    runs-on: macos-13
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          brew install cmake libomp
+
+      - name: Clone CatBoost repository
+        run: |
+          git clone --recursive https://github.com/catboost/catboost
+          cd catboost
+          git checkout v1.2.5
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON
+          make -j4
+
+      - name: Prepare distribution
+        run: |
+          cd catboost
+          mkdir -p dist
+          cp catboost/python-package/catboost/lib/libcatboost.dylib dist
+          cp LICENSE dist/LICENSE-catboost.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: catboost-1.0.6-x86_64-darwin
+          path: catboost/dist

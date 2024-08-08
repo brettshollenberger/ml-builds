@@ -21,9 +21,8 @@ jobs:
 
       - name: Clone CatBoost repository
         run: |
-          git clone --recursive https://github.com/catboost/catboost
+          git clone --recursive --branch v1.2.5 https://github.com/catboost/catboost
           cd catboost
-          git checkout v1.0.6  # Replace with the desired version
           mkdir -p build
           cd build
           cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DOpenMP_C_FLAGS="-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include" -DOpenMP_C_LIB_NAMES=omp -DOpenMP_CXX_FLAGS="-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include" -DOpenMP_CXX_LIB_NAMES=omp -DOpenMP_omp_LIBRARY=/opt/homebrew/opt/libomp/lib/libomp.dylib

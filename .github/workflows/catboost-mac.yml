@@ -19,14 +19,36 @@ jobs:
         run: |
           brew install cmake libomp
 
-      - name: Clone CatBoost repository
+      - name: Cache CatBoost repository
+        uses: actions/cache@v3
+        with:
+          path: catboost
+          key: ${{ runner.os }}-catboost-${{ hashFiles('CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-catboost-
+
+      - name: Clone or update CatBoost repository
         run: |
-          git clone --recursive https://github.com/catboost/catboost
+          if [ -d "catboost" ]; then
+            cd catboost
+            git remote update
+            LOCAL=$(git rev-parse @)
+            REMOTE=$(git rev-parse @{u})
+            if [ $LOCAL != $REMOTE ]; then
+              git reset --hard origin/master
+              git pull --recurse-submodules
+            fi
+          else
+            git clone --recursive --branch v1.2.5 https://github.com/catboost/catboost
+            cd catboost
+          fi
+
+      - name: Build Catboost
+        run: |
           cd catboost
-          git checkout v1.2.5
           mkdir -p build
           cd build
-          cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON
           make -j4
 
       - name: Prepare distribution

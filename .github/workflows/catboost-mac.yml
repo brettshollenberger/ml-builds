@@ -43,6 +43,9 @@ jobs:
         env:
           MACOSX_DEPLOYMENT_TARGET: 10.15
 
+      - name: Enable debug logging
+        run: echo "::set-env name=RUNNER_DEBUG::1"
+
       - name: Build Catboost
         run: |
           cd catboost

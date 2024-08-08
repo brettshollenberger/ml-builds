@@ -41,7 +41,10 @@ jobs:
           brew install cmake libomp
           pip install conan==1.64.1
 
-      - name: Clone CatBoost repository
+      - name: Enable debug logging
+        run: echo "::set-env name=RUNNER_DEBUG::1"
+
+      - name: Build Catboost
         run: |
           cd catboost
           mkdir -p build

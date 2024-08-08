@@ -18,6 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew install cmake libomp
+          pip install conan
 
       - name: Cache CatBoost repository
         uses: actions/cache@v3

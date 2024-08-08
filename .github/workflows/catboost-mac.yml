@@ -15,18 +15,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Restore Homebrew
-        id: cache-homebrew
-        uses: actions/cache@v3
-        with:
-          path: |
-            /usr/local/Homebrew
-            /usr/local/Cellar
-            /usr/local/var/homebrew
-          key: ${{ runner.os }}-homebrew-${{ hashFiles('**/*.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-homebrew-
-
       - name: Install dependencies
         run: |
           xcode-select --install || true
@@ -83,16 +71,6 @@ jobs:
           fi
         env:
           MACOSX_DEPLOYMENT_TARGET: 10.15
-
-      - name: Save Homebrew Cache
-        if: steps.cache-homebrew.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
-        with:
-          path: |
-            /usr/local/Homebrew
-            /usr/local/Cellar
-            /usr/local/var/homebrew
-          key: ${{ runner.os }}-homebrew-${{ hashFiles('**/*.yml') }}
 
       - name: Save CatBoost Cache
         if: steps.cache-catboost.outputs.cache-hit != 'true'

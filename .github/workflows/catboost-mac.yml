@@ -24,6 +24,8 @@ jobs:
             /usr/local/Cellar
             /usr/local/var/homebrew
           key: ${{ runner.os }}-homebrew-${{ hashFiles('**/*.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-homebrew-
 
       - name: Install dependencies
         run: |
@@ -97,12 +99,13 @@ jobs:
         uses: actions/cache/save@v3
         with:
           path: catboost
-          key: ${{ runner.os }}-catboost-${{ hashFiles('CMakeLists.txt') }}
+          key: ${{ runner.os }}-catboost-${{ hashFiles('catboost/CMakeLists.txt') }}
 
       - name: Build Catboost
         run: |
           cd catboost
           mkdir -p build
+          conan install . --build=missing --output-folder=build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON
           make -j4

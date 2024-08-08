@@ -15,31 +15,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Clone or update CatBoost repository
-        run: |
-          if [ -d "catboost" ]; then
-            cd catboost
-            git remote update
-            LOCAL=$(git rev-parse @)
-            REMOTE=$(git rev-parse @{u})
-            if [ $LOCAL != $REMOTE ]; then
-              git reset --hard origin/master
-              git pull --recurse-submodules
-            fi
-          else
-            git clone --recursive --branch v1.2.5 https://github.com/catboost/catboost
-            cd catboost
-          fi
-        env:
-          MACOSX_DEPLOYMENT_TARGET: 10.15
-
       - name: Cache CatBoost repository
+        id: cache-catboost
         uses: actions/cache@v3
         with:
           path: catboost
-          key: ${{ runner.os }}-catboost-${{ hashFiles('catboost/CMakeLists.txt') }}
+          key: ${{ runner.os }}-catboost
           restore-keys: |
-            ${{ runner.os }}-catboost-
+            ${{ runner.os }}-catboost
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 10.15
+
+      - name: Clone or update CatBoost repository
+        if: steps.cache-catboost.outputs.cache-hit != 'true'
+        run: |
+          git clone --recursive --branch v1.2.5 https://github.com/catboost/catboost
+          cd catboost
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 10.15
 
       - name: Install dependencies
         run: |

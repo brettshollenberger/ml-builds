@@ -15,6 +15,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Restore Homebrew
+        id: cache-homebrew
+        uses: actions/cache@v3
+        with:
+          path: |
+            /usr/local/Homebrew
+            /usr/local/Cellar
+            /usr/local/var/homebrew
+          key: ${{ runner.os }}-homebrew-${{ hashFiles('**/*.yml') }}
+
       - name: Install dependencies
         run: |
           xcode-select --install || true
@@ -38,7 +48,7 @@ jobs:
         env:
           MACOSX_DEPLOYMENT_TARGET: 10.15
 
-      - name: Cache CatBoost repository
+      - name: Restore CatBoost repository
         id: cache-catboost
         uses: actions/cache@v3
         with:
@@ -61,19 +71,33 @@ jobs:
         continue-on-error: true
         run: ls
 
+
       - name: Clone or update CatBoost repository
-        if: steps.cache-catboost.outputs.cache-hit != 'true'
         run: |
-          git clone --recursive --branch v1.2.5 https://github.com/catboost/catboost
+          if [ ! -d "catboost" ]; then
+            git clone --recursive --branch v1.2.5 https://github.com/catboost/catboost
+          else
+            echo "Using cached catboost directory"
+          fi
         env:
           MACOSX_DEPLOYMENT_TARGET: 10.15
 
-      - name: Update Cache After Clone
+      - name: Save Homebrew Cache
+        if: steps.cache-homebrew.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            /usr/local/Homebrew
+            /usr/local/Cellar
+            /usr/local/var/homebrew
+          key: ${{ runner.os }}-homebrew-${{ hashFiles('**/*.yml') }}
+
+      - name: Save CatBoost Cache
         if: steps.cache-catboost.outputs.cache-hit != 'true'
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
         with:
           path: catboost
-          key: ${{ runner.os }}-catboost-${{ hashFiles('catboost/CMakeLists.txt') }}
+          key: ${{ runner.os }}-catboost-${{ hashFiles('CMakeLists.txt') }}
 
       - name: Build Catboost
         run: |

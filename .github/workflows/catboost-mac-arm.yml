@@ -20,9 +20,16 @@ jobs:
         uses: actions/cache@v3
         with:
           path: catboost
-          key: ${{ runner.os }}-catboost
+          key: ${{ runner.os }}-catboost-${{ hashFiles('catboost/CMakeLists.txt') }}
           restore-keys: |
             ${{ runner.os }}-catboost
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 10.15
+
+      - name: Debug Cache
+        run: |
+          echo "Cache key: ${{ runner.os }}-catboost-${{ hashFiles('catboost/CMakeLists.txt') }}"
+          echo "Cache hit: ${{ steps.cache-catboost.outputs.cache-hit }}"
         env:
           MACOSX_DEPLOYMENT_TARGET: 10.15
 
@@ -30,7 +37,6 @@ jobs:
         if: steps.cache-catboost.outputs.cache-hit != 'true'
         run: |
           git clone --recursive --branch v1.2.5 https://github.com/catboost/catboost
-          cd catboost
         env:
           MACOSX_DEPLOYMENT_TARGET: 10.15
 
@@ -39,10 +45,20 @@ jobs:
           brew install autoconf automake libtool
           brew install cmake libomp
           pip install conan==1.64.1
-          brew install openjdk
-          sudo ln -sfn /opt/homebrew/opt/openjdk.jdk /Library/Java/JavaVirtualmachines/openjdk.jdk
-          echo 'export JAVA_HOME=$(/usr/libexec/java_home)' >> $GITHUB_ENV
-          echo 'export PATH=$JAVA_HOME/bin:$PATH' >> $GITHUB_ENV
+
+      - name: Debugging Environment
+        run: |
+          echo "Printing environment variables..."
+          env
+          echo "Checking installed tools..."
+          which gcc
+          which g++
+          gcc --version
+          g++ --version
+          which conan
+          conan --version
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 10.15
 
       - name: Build Catboost
         run: |

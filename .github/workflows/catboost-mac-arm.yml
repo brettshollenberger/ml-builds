@@ -15,17 +15,43 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Clone or update CatBoost repository
+        run: |
+          if [ -d "catboost" ]; then
+            cd catboost
+            git remote update
+            LOCAL=$(git rev-parse @)
+            REMOTE=$(git rev-parse @{u})
+            if [ $LOCAL != $REMOTE ]; then
+              git reset --hard origin/master
+              git pull --recurse-submodules
+            fi
+          else
+            git clone --recursive --branch v1.2.5 https://github.com/catboost/catboost
+            cd catboost
+          fi
+
+      - name: Cache CatBoost repository
+        uses: actions/cache@v3
+        with:
+          path: catboost
+          key: ${{ runner.os }}-catboost-${{ hashFiles('catboost/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-catboost-
+
+
       - name: Install dependencies
         run: |
           brew install cmake libomp
+          pip install conan==1.64.1
 
       - name: Clone CatBoost repository
         run: |
-          git clone --recursive --branch v1.2.5 https://github.com/catboost/catboost
           cd catboost
+          conan install . --install-folder=build --build=missing --settings os.version=14.0
           mkdir -p build
           cd build
-          cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DOpenMP_C_FLAGS="-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include" -DOpenMP_C_LIB_NAMES=omp -DOpenMP_CXX_FLAGS="-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include" -DOpenMP_CXX_LIB_NAMES=omp -DOpenMP_omp_LIBRARY=/opt/homebrew/opt/libomp/lib/libomp.dylib
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON -DOpenMP_C_FLAGS="-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include" -DOpenMP_C_LIB_NAMES=omp -DOpenMP_CXX_FLAGS="-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include" -DOpenMP_CXX_LIB_NAMES=omp -DOpenMP_omp_LIBRARY=/opt/homebrew/opt/libomp/lib/libomp.dylib
           make -j4
 
       - name: Prepare distribution
@@ -38,5 +64,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: catboost-1.0.6-aarch64-darwin
+          name: catboost-1.2.5-aarch64-darwin
           path: catboost/dist

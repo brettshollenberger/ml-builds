@@ -47,6 +47,7 @@ jobs:
       - name: Build Catboost
         run: |
           cd catboost
+          conan install . --install-folder=build --build=missing --settings os.version=14.0
           mkdir -p build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON
@@ -62,5 +63,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: catboost-1.0.6-x86_64-darwin
+          name: catboost-1.2.5-x86_64-darwin
           path: catboost/dist

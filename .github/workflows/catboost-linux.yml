@@ -1,0 +1,37 @@
+name: CatBoost Linux
+on:
+  push:
+    branches:
+      - "**"
+    tags-ignore:
+      - "*"
+    paths:
+      - .github/workflows/catboost-linux.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ubuntu:20.04
+    steps:
+      - run: |
+        apt update
+        apt install -y build-essential git wget
+        wget -q https://github.com/Kitware/CMake/releases/download/v3.21.3/cmake-3.21.3-linux-x86_64.tar.gz
+        tar xzf cmake-3.21.3-linux-x86_64.tar.gz
+        git clone --recursive --branch v1.2.5 https://github.com/catboost/catboost
+        cd catboost
+        mkdir -p build
+        cd build
+        ../../cmake-3.21.3-linux-x86_64/bin/cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_BUILD_TYPE=Release
+        make -j4
+        cd ..
+
+        mkdir -p dist
+        cp catboost/python-package/catboost/lib/libcatboost.dylib dist
+        cp LICENSE dist/LICENSE-catboost.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: catboost-1.2.5-x86_64-linux
+          path: catboost/dist

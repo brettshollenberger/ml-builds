@@ -18,15 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew install cmake libomp
-          pip install conan
-
-      - name: Cache CatBoost repository
-        uses: actions/cache@v3
-        with:
-          path: catboost
-          key: ${{ runner.os }}-catboost-${{ hashFiles('CMakeLists.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-catboost-
+          pip install conan==1.35.0
 
       - name: Clone or update CatBoost repository
         run: |
@@ -43,6 +35,14 @@ jobs:
             git clone --recursive --branch v1.2.5 https://github.com/catboost/catboost
             cd catboost
           fi
+
+      - name: Cache CatBoost repository
+        uses: actions/cache@v3
+        with:
+          path: catboost
+          key: ${{ runner.os }}-catboost-${{ hashFiles('catboost/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-catboost-
 
       - name: Build Catboost
         run: |

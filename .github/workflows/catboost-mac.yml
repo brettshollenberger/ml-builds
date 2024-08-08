@@ -21,6 +21,10 @@ jobs:
           brew install autoconf automake libtool
           brew install cmake libomp
           pip install conan==1.64.1
+          brew install openjdk
+          sudo ln -sfn /opt/homebrew/opt/openjdk.jdk /Library/Java/JavaVirtualmachines/openjdk.jdk
+          echo 'export JAVA_HOME=$(/usr/libexec/java_home)' >> $GITHUB_ENV
+          echo 'export PATH=$JAVA_HOME/bin:$PATH' >> $GITHUB_ENV
         env:
           MACOSX_DEPLOYMENT_TARGET: 10.15
 
@@ -42,9 +46,6 @@ jobs:
           cd catboost
         env:
           MACOSX_DEPLOYMENT_TARGET: 10.15
-
-      - name: Enable debug logging
-        run: echo "::set-env name=RUNNER_DEBUG::1"
 
       - name: Build Catboost
         run: |

@@ -56,15 +56,24 @@ jobs:
         env:
           MACOSX_DEPLOYMENT_TARGET: 10.15
 
+      - if: ${{ steps.cache-catboost.outputs.cache-hit != 'true' }}
+        name: List the state of the directory
+        continue-on-error: true
+        run: ls
+
       - name: Clone or update CatBoost repository
         if: steps.cache-catboost.outputs.cache-hit != 'true'
-        with:
-          cache-from: type=local,src=catboost
-          cache-to: type=local,dest=catboost
         run: |
           git clone --recursive --branch v1.2.5 https://github.com/catboost/catboost
         env:
           MACOSX_DEPLOYMENT_TARGET: 10.15
+
+      - name: Update Cache After Clone
+        if: steps.cache-catboost.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: catboost
+          key: ${{ runner.os }}-catboost-${{ hashFiles('CMakeLists.txt') }}
 
       - name: Build Catboost
         run: |

@@ -19,6 +19,8 @@ jobs:
         run: |
           brew install cmake libomp
           pip install conan==1.64.1
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 10.15
 
       - name: Clone or update CatBoost repository
         run: |
@@ -35,6 +37,8 @@ jobs:
             git clone --recursive --branch v1.2.5 https://github.com/catboost/catboost
             cd catboost
           fi
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 10.15
 
       - name: Cache CatBoost repository
         uses: actions/cache@v3
@@ -47,11 +51,12 @@ jobs:
       - name: Build Catboost
         run: |
           cd catboost
-          conan install . --install-folder=build --build=missing --settings os.version=14.0
           mkdir -p build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON
           make -j4
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 10.15
 
       - name: Prepare distribution
         run: |

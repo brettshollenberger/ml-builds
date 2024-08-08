@@ -30,6 +30,8 @@ jobs:
             git clone --recursive --branch v1.2.5 https://github.com/catboost/catboost
             cd catboost
           fi
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 10.15
 
       - name: Cache CatBoost repository
         uses: actions/cache@v3
@@ -39,7 +41,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-catboost-
 
-
       - name: Install dependencies
         run: |
           brew install cmake libomp
@@ -48,11 +49,12 @@ jobs:
       - name: Clone CatBoost repository
         run: |
           cd catboost
-          conan install . --install-folder=build --build=missing --settings os.version=14.0
           mkdir -p build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON -DOpenMP_C_FLAGS="-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include" -DOpenMP_C_LIB_NAMES=omp -DOpenMP_CXX_FLAGS="-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include" -DOpenMP_CXX_LIB_NAMES=omp -DOpenMP_omp_LIBRARY=/opt/homebrew/opt/libomp/lib/libomp.dylib
           make -j4
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 10.15
 
       - name: Prepare distribution
         run: |
